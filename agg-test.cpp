@@ -75,7 +75,7 @@ inline bool write_image(const agg::rendering_buffer & rbuf, const char * filenam
 }
 
 
-std::unique_ptr<unsigned char[]> read_image(agg::rendering_buffer & rbuf, const char * filename)
+std::unique_ptr<int8u[]> read_image(agg::rendering_buffer & rbuf, const char * filename)
 {
 	int img_cx = 0;
 	int img_cy = 0;
@@ -93,12 +93,12 @@ std::unique_ptr<unsigned char[]> read_image(agg::rendering_buffer & rbuf, const 
 }
 
 
-std::unique_ptr<unsigned char[]> create_rendering_buffer(agg::rendering_buffer & rbuf, int cx, int cy)
+std::unique_ptr<int8u[]> create_rendering_buffer(agg::rendering_buffer & rbuf, int cx, int cy)
 {
 	int stride = cx * 3;
 	int size = cy * stride;
 
-	auto buffer = std::make_unique<unsigned char[]>(size);
+	auto buffer = std::make_unique<int8u[]>(size);
 	if (buffer)
 		rbuf.attach(buffer.get(), cx, cy, stride);
 
@@ -297,6 +297,8 @@ void test_F()
 	// --- Image --------------------------------------------------------
 	agg::rendering_buffer img_rbuf;
 	auto img_buffer = read_image(img_rbuf, "picture.ppm");
+	if (!img_buffer)
+		return;
 	agg::pixfmt_rgb24 img_pixf(img_rbuf);
 
 	using img_source_type = agg::image_accessor_clone<agg::pixfmt_rgb24>;
@@ -352,7 +354,7 @@ void test_F()
 	rasterizer.clip_box(0, 0, dx, dy);
 
 	agg::trans_affine inv_mat = ~matrix;
-	double x = 0, y = 0;
+	double x, y;
 
 	x = 0;  y = 0;  inv_mat.transform(&x, &y); rasterizer.move_to_d(x, y);
 	x = sx; y = 0;  inv_mat.transform(&x, &y); rasterizer.line_to_d(x, y);
